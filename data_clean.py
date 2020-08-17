@@ -16,6 +16,8 @@ from query import county
 class COVID:
 	def __init__(self, df):
 		self.df = df
+		self.pop = pd.read_csv('county_pop.csv')
+		self.pop = self.pop.rename(columns={'County': 'county', "Population": "population"})
 
 	def top_10(self):
 		# This function groups California counties by county and sorta by counts confirmed for a top 10 list.
@@ -38,14 +40,15 @@ class COVID:
 		return total, top_total
 		
 
-	def compare(self, top_total, counties, pop):
+	def compare(self, top_total, counties):
 		# This function filters counties, adds population, and finds the 7 day moving average for comparison.
 		# Pass only 2 counties
 		# Should compare a county to LA since LA is the highest
 		comparison_df = top_total[top_total['county'].isin(counties)]
 		comparison_df['county'] =  comparison_df['county'] + ' County'
-		comparison_df = comparison_df.merge(pop, how='left', on=['county'])
+		comparison_df = comparison_df.merge(self.pop, how='left', on=['county'])
 		comparison_df['per_capita'] = comparison_df['Value'] / comparison_df['population'] * 100000
+		comparison_df['pop_density'] = comparison_df['population'] / comparison_df['Square_Miles']
 		comparison_df['SMA_7'] = 0
 		return comparison_df
 
@@ -60,7 +63,7 @@ class COVID:
 		# Calculate 7-day moving average 
 		df = df.sort_values(by='date')
 		for i in range (0, df.shape[0]-6):
-			df.loc[df.index[i+6],'SMA_7'] = np.round(((df.iloc[i,5] + df.iloc[i+1,5] + df.iloc[i+2,5] + df.iloc[i+3,5] + df.iloc[i+4,5] + df.iloc[i+5,5] + df.iloc[i+6,5])/7),5)
+			df.loc[df.index[i+6],'SMA_7'] = np.round(((df.iloc[i,6] + df.iloc[i+1,6] + df.iloc[i+2,6] + df.iloc[i+3,6] + df.iloc[i+4,6] + df.iloc[i+5,6] + df.iloc[i+6,6])/7),6)
 		return df
 
 
@@ -76,10 +79,15 @@ class COVID:
 
 		return death_percent
 
+	def population_density(self, result):
+		result['per_density'] = (result['SMA_7'] / result['pop_density']) * 100
+		return result
 
-pop = pd.read_csv('county_pop.csv')
 
-pop = pop.rename(columns={'County': 'county', "Population": "population"})
+
+# pop = pd.read_csv('county_pop.csv')
+
+# pop = pop.rename(columns={'County': 'county', "Population": "population"})
 
 top = COVID(county).top_10()
 # print(top)
@@ -87,7 +95,7 @@ converted, top_converted = COVID(county).convert(top)
 # print (converted)
 
 counties = ['Alameda', 'Los Angeles']
-comparison = COVID(county).compare(converted, counties, pop)
+comparison = COVID(county).compare(converted, counties)
 # print(comparison)
 alameda_case, alameda_death = COVID(county).split(comparison, 'Alameda County')
 la_case, la_death = COVID(county).split(comparison, 'Los Angeles County')
@@ -103,8 +111,9 @@ result = pd.concat(sma)
 
 mortality_rate = COVID(county).mortality_rate(alameda_case, alameda_death, la_case, la_death)
 
+pop_den = COVID(county).population_density(result)
 
-print(mortality_rate)
+print(pop_den)
 	       
 # result = pd.concat(sma)
 # print(result)
