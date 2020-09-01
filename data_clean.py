@@ -9,7 +9,7 @@ pd.set_option('display.max_rows', 3000)
 pd.set_option('display.max_columns', 300)
 pd.set_option('display.width', 1000)
 import altair as alt
-from query import county
+from connection import county
 
 # This class provides functions that can be used to clean, organize, and prepare COVID data for analysis
 # Data is pulled with API from government websites
@@ -52,13 +52,6 @@ class COVID:
 		comparison_df['SMA_7'] = 0
 		return comparison_df
 
-	def split(self, comparison_df, county):
-		# Split comparison_df by county & type
-		county_case = comparison_df[(comparison_df['Type'] == 'newcountconfirmed') & (comparison_df['county'] == county)]
-		county_death = comparison_df[(comparison_df['Type'] == 'newcountdeaths') & (comparison_df['county'] == county)]
-		return county_case, county_death 
-
-
 	def simple_moving_ave(self, df):
 		# Calculate 7-day moving average 
 		df = df.sort_values(by='date')
@@ -66,6 +59,16 @@ class COVID:
 			df.loc[df.index[i+6],'SMA_7'] = np.round(((df.iloc[i,6] + df.iloc[i+1,6] + df.iloc[i+2,6] + df.iloc[i+3,6] + df.iloc[i+4,6] + df.iloc[i+5,6] + df.iloc[i+6,6])/7),6)
 		return df
 
+
+	def split(self, comparison_df, county):
+		# Split comparison_df by county & type
+		county_case = comparison_df[(comparison_df['Type'] == 'newcountconfirmed') & (comparison_df['county'] == county)]
+		county_death = comparison_df[(comparison_df['Type'] == 'newcountdeaths') & (comparison_df['county'] == county)]
+		county_case = self.simple_moving_ave(county_case)
+		county_death = self.simple_moving_ave(county_death)
+		sma = [county_case, county_death]
+		result =pd.concat(sma)
+		return result, county_case, county_death
 
 
 	def mortality_rate(self, county_one_case, county_one_death, county_two_case, county_two_death):
@@ -94,29 +97,38 @@ top = COVID(county).top_10()
 converted, top_converted = COVID(county).convert(top)
 # print (converted)
 
+top_counties =top['county'].to_list()
+
 counties = ['Alameda', 'Los Angeles']
 comparison = COVID(county).compare(converted, counties)
-# print(comparison)
-alameda_case, alameda_death = COVID(county).split(comparison, 'Alameda County')
-la_case, la_death = COVID(county).split(comparison, 'Los Angeles County')
+print(comparison)
+alameda,  alameda_case, alameda_death = COVID(county).split(comparison, 'Alameda County')
+la, la_case, la_death = COVID(county).split(comparison, 'Los Angeles County')
 
-alameda_case = COVID(county).simple_moving_ave(alameda_case)
-alameda_death = COVID(county).simple_moving_ave(alameda_death)
-la_case = COVID(county).simple_moving_ave(la_case)
-la_death = COVID(county).simple_moving_ave(la_death)
-
-sma = [alameda_case, alameda_death, la_case, la_death]
-       
-result = pd.concat(sma)
+result = pd.concat([alameda, la])
 
 mortality_rate = COVID(county).mortality_rate(alameda_case, alameda_death, la_case, la_death)
 
 pop_den = COVID(county).population_density(result)
 
-print(pop_den)
+top_comparison = COVID(county).compare(converted, top_counties)
+
+print(type(result))
+
+appended_data = []
+
+for area in top_counties:
+	county_sma = COVID(county).split(top_comparison, area + ' County')[0]
+	print(type(county_sma))
+	appended_data.append(county_sma)
+	print(type(appended_data))
+
+top_data = pd.concat(appended_data)
+print(top_data)
+
+
+
+
 	       
 # result = pd.concat(sma)
 # print(result)
-
-
-

@@ -4,7 +4,7 @@ import streamlit as st
 from streamlit import caching
 
 #database
-from query import county
+from connection import county
 import os
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, ForeignKey, inspect
@@ -28,8 +28,9 @@ rcParams.update({'figure.autolayout': True})
 import pydeck as pdk
 import altair as alt
 alt.data_transformers.disable_max_rows()
+from data_visualization import comparison_chart, mortality_chart, pop_density_chart, comparison_chart_all
 
-from data_clean import result, mortality_rate, pop_den
+from data_clean import result, mortality_rate, pop_den, top_data
 
 
 def main():
@@ -85,7 +86,9 @@ def main():
         
         """)
 
-        comparison_chart()
+        comparison_chart(result, 'date:T', 'SMA_7', 'county', 'Type', "7-Day Moving Average, Alameda County vs LA County COVID-19")
+
+        comparison_chart_all(top_data, 'date:T', 'SMA_7', 'county', 'Type', "7-Day Moving Average, California Counties COVID-19")
 
         st.markdown(
         """
@@ -93,7 +96,7 @@ def main():
 
         """)
 
-        mortality_chart()
+        mortality_chart(mortality_rate, 'date:T', 'death_percent', 'county_x')
 
         st.markdown(
         """
@@ -101,7 +104,7 @@ def main():
 
         """)
         
-        pop_density_chart()
+        pop_density_chart(pop_den, 'date:T', 'per_density', 'county', 'Type')
 
 
         if st.checkbox("Display total data", False):
@@ -147,176 +150,14 @@ def get_dates():
 # Filter data with location
 def filter_data(data, start_date, end_date):
     filtered = data[
-    (data['Date'] >= start_date) & (data['Date'].dt.date <= (end_date))
+    (data['Date'].dt.date  >= start_date) & (data['Date'].dt.date <= (end_date))
     ]
     location = st.multiselect("Enter Location", sorted(data['city'].unique()))
     bedroom = st.multiselect("Enter Bedrooms", sorted(data['bedrooms'].unique()))
     selected_filtered_data = filtered[(filtered['city'].isin(location))&(filtered['bedrooms'].isin(bedroom))]
     return selected_filtered_data, location, bedroom
   
-def comparison_chart():
-    alt.data_transformers.disable_max_rows()
-    # Create a selection that chooses the nearest point & selects based on x-value
-    nearest = alt.selection(type='single', nearest=True, on='mouseover',
-                            fields=['date'], empty='none')
 
-    line = alt.Chart(result, title="7-Day Moving Average LA vs Alameda COVID-19").mark_line(point=True).encode(
-        x = alt.X('date:T', axis = alt.Axis(title = 'date'.upper(), format = ("%b %Y"), tickMinStep = 2, labelAngle=0)),
-        y=alt.Y('SMA_7', axis = alt.Axis(title='Per 100,000 Population')),
-        color='county',
-        strokeDash='Type',
-    )# Transparent selectors across the chart. This is what tells us
-    # the x-value of the cursor
-    selectors = alt.Chart(result).mark_point().encode(
-        x='date:T',
-        opacity=alt.value(0),
-    ).add_selection(
-        nearest
-    )
-
-    # Draw points on the line, and highlight based on selection
-    points = line.mark_point().encode(
-        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
-    )
-
-    # Draw text labels near the points, and highlight based on selection
-    text = line.mark_text(align='left', dx=5, dy=-5).encode(
-        text=alt.condition(nearest, 'SMA_7', alt.value(' '))
-    )
-
-    # Draw a rule at the location of the selection
-    rules = alt.Chart(result).mark_rule(color='gray').encode(
-        x='date'
-    ).transform_filter(
-        nearest
-    )
-
-    # Put the five layers into a chart and bind the data
-    chart = alt.layer(
-        line, selectors, points, rules, text
-    ).properties(
-        width=1200,
-        height=600,
-        autosize=alt.AutoSizeParams(
-        type='fit',
-        contains='padding'
-    )
-    ).configure_axis(
-        labelFontSize=20,
-        titleFontSize=20,
-    ).configure_legend(
-        titleFontSize=10,
-        labelFontSize=15,
-    ).configure_title(fontSize=24).interactive()
-    st.altair_chart(chart)
-
-
-def mortality_chart():
-    alt.data_transformers.disable_max_rows()
-    # Create a selection that chooses the nearest point & selects based on x-value
-    nearest = alt.selection(type='single', nearest=True, on='mouseover',
-                            fields=['date'], empty='none')
-
-    line = alt.Chart(mortality_rate, title="Mortality Rate, 7-Day Moving Average LA vs Alameda COVID-19").mark_line(point=True).encode(
-        x = alt.X('date:T', axis = alt.Axis(title = 'date'.upper(), format = ("%b %Y"), tickMinStep = 2, labelAngle=0)),
-        y=alt.Y('death_percent', axis = alt.Axis(title='Deaths / Confirmed Cases')),
-        color='county_x',
-    )
-
-    # Transparent selectors across the chart. This is what tells us
-    # the x-value of the cursor
-    selectors = alt.Chart(mortality_rate).mark_point().encode(
-        x='date:T',
-        opacity=alt.value(0),
-    ).add_selection(
-        nearest
-        )
-
-    # Draw points on the line, and highlight based on selection
-    points = line.mark_point().encode(
-        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
-        )
-
-    # Draw text labels near the points, and highlight based on selection
-    text = line.mark_text(align='left', dx=5, dy=-5).encode(
-        text=alt.condition(nearest, 'death_percent', alt.value(' '))
-    )
-
-    # Draw a rule at the location of the selection
-    rules = alt.Chart(mortality_rate).mark_rule(color='gray').encode(
-        x='date'
-    ).transform_filter(
-        nearest
-    )
-
-    # Put the five layers into a chart and bind the data
-    chart = alt.layer(
-        line, selectors, points, rules, text
-    ).properties(
-        width=1200,
-        height=600
-    ).configure_axis(
-        labelFontSize=15,
-        titleFontSize=20,
-    ).configure_legend(
-        titleFontSize=10,
-        labelFontSize=15,
-    ).configure_title(fontSize=24).interactive()
-    st.altair_chart(chart)
-
-def pop_density_chart():
-    alt.data_transformers.disable_max_rows()
-    # Create a selection that chooses the nearest point & selects based on x-value
-    nearest = alt.selection(type='single', nearest=True, on='mouseover',
-                            fields=['date'], empty='none')
-
-    line = alt.Chart(pop_den, title="Case & Death Per Density, 7-Day Moving Average LA vs Alameda COVID-19").mark_line(point=True).encode(
-        x = alt.X('date:T', axis = alt.Axis(title = 'date'.upper(), format = ("%b %Y"), tickMinStep = 2, labelAngle=0)),
-        y=alt.Y('per_density', axis = alt.Axis(title='Per Capita / Population Density * 100')),
-        color='county',
-        strokeDash='Type',
-    )
-
-    # Transparent selectors across the chart. This is what tells us
-    # the x-value of the cursor
-    selectors = alt.Chart(pop_den).mark_point().encode(
-        x='date:T',
-        opacity=alt.value(0),
-    ).add_selection(
-        nearest
-        )
-
-    # Draw points on the line, and highlight based on selection
-    points = line.mark_point().encode(
-        opacity=alt.condition(nearest, alt.value(1), alt.value(0))
-        )
-
-    # Draw text labels near the points, and highlight based on selection
-    text = line.mark_text(align='left', dx=5, dy=-5).encode(
-        text=alt.condition(nearest, 'per_density', alt.value(' '))
-    )
-
-    # Draw a rule at the location of the selection
-    rules = alt.Chart(pop_den).mark_rule(color='gray').encode(
-        x='date'
-    ).transform_filter(
-        nearest
-    )
-
-    # Put the five layers into a chart and bind the data
-    chart = alt.layer(
-        line, selectors, points, rules, text
-    ).properties(
-        width=1200,
-        height=600
-    ).configure_axis(
-        labelFontSize=15,
-        titleFontSize=20,
-    ).configure_legend(
-        titleFontSize=10,
-        labelFontSize=15,
-    ).configure_title(fontSize=24).interactive()
-    st.altair_chart(chart)
 
 if __name__ == "__main__":
     main()
