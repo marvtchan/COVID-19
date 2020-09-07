@@ -4,7 +4,7 @@ import streamlit as st
 from streamlit import caching
 
 #database
-from connection import county
+
 import os
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, ForeignKey, inspect
@@ -28,9 +28,8 @@ rcParams.update({'figure.autolayout': True})
 import pydeck as pdk
 import altair as alt
 alt.data_transformers.disable_max_rows()
-from data_visualization import comparison_chart, mortality_chart, pop_density_chart, comparison_chart_all
+from data_visualization import comparison_chart, mortality_chart, pop_density_chart, comparison_chart_all, density_relationship
 
-from data_clean import result, mortality_rate, pop_den, top_data
 
 
 def main():
@@ -38,10 +37,11 @@ def main():
     page = st.sidebar.selectbox("Choose a page", ["Homepage", "Analysis", "Visualize Map"])
 
     if page == "Homepage":
-        st.title("COVID-19 in Alameda County")
+        st.title("COVID-19 in California Counties")
         st.markdown(
         """
-   			This is an exploratory page for searching an COVID-19 in the Bay Area.
+   			This is an exploratory page analyzing COVID-19 in California.
+            In the "Analysis" page counties are normalized by population, population density, and can be filtered to compare against one another.
         """)
         st.markdown(
         """
@@ -56,6 +56,23 @@ def main():
         """
         We can analyze the COVID-19 data on the 'Analysis' page.
         """)
+        st.subheader("Top 10 Counties")
+        top_data = load_data()[3]
+        data = load_data()[0]
+
+        display_top = top_data[['county', 'date', 'Type', 'Value']]
+
+        display_top['Running Totals'] = display_top.groupby(['county', 'Type'])['Value'].apply(lambda x: x.cumsum())
+        display_top = display_top.nlargest(20,'date').sort_values(by=['Type', 'Value'], ascending=False)
+        display_top['Daily Value'] = display_top['Value']
+
+        display_top = display_top.pivot_table(index=['county', 'date'], columns='Type', values=['Daily Value', 'Running Totals'], aggfunc=np.sum)
+        display_top = display_top.sort_values(('Running Totals', 'newcountconfirmed'), ascending=False)
+
+        st.table(display_top)
+        if st.checkbox("Display total data", False):
+            st.subheader("Raw Data")
+            st.write(data)
         st.subheader("Visualize")
         st.markdown(
         """
@@ -86,28 +103,59 @@ def main():
         
         """)
 
-        comparison_chart(result, 'date:T', 'SMA_7', 'county', 'Type', "7-Day Moving Average, Alameda County vs LA County COVID-19")
+        data, pop_den, result, top_data, mortality_rate = load_data()
 
-        comparison_chart_all(top_data, 'date:T', 'SMA_7', 'county', 'Type', "7-Day Moving Average, California Counties COVID-19")
+        start_date, end_date, today = get_dates()
+
+        filtered_result = filter_data(result, start_date, end_date)
+
+
+        comparison_chart(filtered_result, 'date:T', 'SMA_7', 'county', 'Type', "7-Day Moving Average, Alameda County vs LA County COVID-19")
+        
 
         st.markdown(
         """
-           2. Alameda County vs Los Angeles County Mortality Rate
+           2. Alameda County vs Los Angeles County COVID-19 Density
 
         """)
 
-        mortality_chart(mortality_rate, 'date:T', 'death_percent', 'county_x')
+        pop_density_chart(filtered_result, 'date:T', 'per_density', 'county', 'Type')
 
         st.markdown(
         """
-           3. Alameda County vs Los Angeles County Per Population Density
+           Below we can see the relationship between population density and total confirmed cases of COVID-19 by County.
 
         """)
         
-        pop_density_chart(pop_den, 'date:T', 'per_density', 'county', 'Type')
+        density = relationships(data, pop_den)
+
+        density_relationship(density, 'pop_density', 'totalcountdeaths')
+
+ 
+        if st.checkbox("Display total data", False, key=result):
+            st.subheader("Raw Data")
+            st.write(result)
+
+        st.markdown(
+        """
+           3. Alameda County vs Los Angeles County Mortality Rate
+
+        """)
+
+        filtered_mortality_rate = filter_data(mortality_rate, start_date, end_date)
+
+        mortality_chart(filtered_mortality_rate, 'date:T', 'death_percent', 'county')
+
+        st.markdown(
+        """
+           4. Top 10 Absolute Confirmed Cases Normalzied Per Capita
+
+        """)
+
+        comparison_chart_all(top_data, 'date:T', 'SMA_7', 'county', 'Type', "7-Day Moving Average, Top 10 California Counties COVID-19")
 
 
-        if st.checkbox("Display total data", False):
+        if st.checkbox("Display total data", False, key=data):
             st.subheader("Raw Data")
             st.write(county)
 
@@ -123,13 +171,18 @@ def main():
 
 
 # Load Data from database
-@st.cache(persist=True)
+@st.cache(persist=True, allow_output_mutation=True)
 def load_data():
     engine = create_engine('postgresql://marvinchan:shadow8@localhost:5432/covid', echo=False)
     connection = engine.raw_connection()
     cursor = connection.cursor()
     data = pd.read_sql_query('SELECT * FROM county', connection)
-    return data
+    data['county'] = data['county'] + ' County'
+    pop_den = pd.read_sql_query('SELECT * FROM population_density_aggregated', connection)
+    result = pd.read_sql_query('SELECT * FROM counties_aggregated', connection)
+    top_data = pd.read_sql_query('SELECT * FROM top_counties_aggregated', connection)
+    mortality_rate = pd.read_sql_query('SELECT * FROM mortality_rate_aggregated', connection)
+    return data, pop_den, result, top_data, mortality_rate
 
 
 #Function for dates
@@ -138,26 +191,31 @@ def get_dates():
     first = today.replace(day=1)
     start = first
     end = first + relativedelta(day=31)
-    start_date = st.sidebar.date_input('Listing Created Date Range Start', start)
-    end_date = st.sidebar.date_input('End', end)
+    start_date = st.sidebar.date_input('Start Date', dt.date(2020,3,18))
+    end_date = st.sidebar.date_input('End Date', today)
     if start_date < end_date:
         st.success('Start date: `%s`\n\nEnd date:`%s`' % (start_date, end_date))
     else:
         st.error('Error: End date must fall after start date.')
-    return start_date, end_date  
+    return start_date, end_date, today
 
 
 # Filter data with location
 def filter_data(data, start_date, end_date):
     filtered = data[
-    (data['Date'].dt.date  >= start_date) & (data['Date'].dt.date <= (end_date))
+    (data['date'].dt.date >= start_date) & (data['date'].dt.date <= (end_date))
     ]
-    location = st.multiselect("Enter Location", sorted(data['city'].unique()))
-    bedroom = st.multiselect("Enter Bedrooms", sorted(data['bedrooms'].unique()))
-    selected_filtered_data = filtered[(filtered['city'].isin(location))&(filtered['bedrooms'].isin(bedroom))]
-    return selected_filtered_data, location, bedroom
+    location = st.multiselect("Enter Location", sorted(data['county'].unique()), default=["Los Angeles County", "Alameda County"], key=data)
+    filtered = filtered[filtered['county'].isin(location)]
+    return filtered
   
-
+def relationships(data, pop_den):
+    density = data
+    density = pd.merge(density, pop_den[['county', 'pop_density']], on='county', how='left').drop_duplicates('_id').reset_index()
+    density = density[['county', 'date', 'totalcountconfirmed', 'totalcountdeaths', 'pop_density']]
+    density['date'] = pd.to_datetime(density['date'])
+    density = density[density['date'] == density['date'].max()]
+    return density
 
 if __name__ == "__main__":
     main()

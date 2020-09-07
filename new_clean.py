@@ -8,11 +8,13 @@ import matplotlib.pyplot as plt
 pd.set_option('display.max_rows', 3000)
 pd.set_option('display.max_columns', 300)
 pd.set_option('display.width', 1000)
+
 import altair as alt
 from connection import county
 
 # This class provides functions that can be used to clean, organize, and prepare COVID data for analysis
 # Data is pulled with API from government websites
+# The databframes created are then loaded into PSQL database. 
 class COVID:
 	def __init__(self, df):
 		self.df = df
@@ -80,9 +82,8 @@ class COVID:
 
 	def population_density(self, result):
 		# Calculate population density
-		result['per_density'] = (result['SMA_7'] / result['pop_density']) * 100
+		result['per_density'] = (result['SMA_7'] * result['pop_density'])
 		return result
-
 
 	def cleaned(self):
 		# Create tables for cleaned data
@@ -110,6 +111,7 @@ class COVID:
 			counties_case.append(county_case)
 			counties_death.append(county_death)
 			
+			
 		result = pd.concat(result)
 		counties_case = pd.concat(counties_case)
 		counties_death = pd.concat(counties_death)
@@ -118,10 +120,11 @@ class COVID:
 		pop_density = COVID(self.df).population_density(result)
 
 
-		return result,top_data, mortality_rate, pop_density
+		return result, top_data, mortality_rate, pop_density
 
 
 
 
 
 result, top_data, mortality_rate, pop_den = COVID(county).cleaned()
+
