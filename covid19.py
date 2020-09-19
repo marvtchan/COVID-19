@@ -123,7 +123,7 @@ def main():
 
         st.markdown(
         """
-           Below we can see the relationship between population density and total confirmed cases of COVID-19 by County.
+           Below we can see the relationship between population density and total confirmed cases of COVID-19 by County. The data is portraying the most recent date published by the State of California.
 
         """)
         
@@ -131,6 +131,7 @@ def main():
 
         density_relationship(density, 'pop_density', 'totalcountdeaths')
 
+        st.write(density)
  
         if st.checkbox("Display total data", False, key=result):
             st.subheader("Raw Data")
@@ -182,6 +183,7 @@ def load_data():
     result = pd.read_sql_query('SELECT * FROM counties_aggregated', connection)
     top_data = pd.read_sql_query('SELECT * FROM top_counties_aggregated', connection)
     mortality_rate = pd.read_sql_query('SELECT * FROM mortality_rate_aggregated', connection)
+    connection.close()
     return data, pop_den, result, top_data, mortality_rate
 
 
@@ -212,7 +214,9 @@ def filter_data(data, start_date, end_date):
 def relationships(data, pop_den):
     density = data
     density = pd.merge(density, pop_den[['county', 'pop_density']], on='county', how='left').drop_duplicates('_id').reset_index()
-    density = density[['county', 'date', 'totalcountconfirmed', 'totalcountdeaths', 'pop_density']]
+    density = pd.merge(density, pop_den[['county', 'population']], on='county', how='left').drop_duplicates('_id').reset_index()
+    density['count_per_capita'] = density['totalcountconfirmed']/density['population'] * 100000
+    density = density[['county', 'date', 'count_per_capita', 'pop_density', 'totalcountconfirmed']]
     density['date'] = pd.to_datetime(density['date'])
     density = density[density['date'] == density['date'].max()]
     return density

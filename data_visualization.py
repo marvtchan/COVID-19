@@ -244,8 +244,8 @@ def pop_density_chart(df, x_value, y_value, color_value, stroke_value):
 def density_relationship(df, x_value, y_value):
     scatter = alt.Chart(df, title='COVID-19, Relationship of Population Density and Confirmed Cases by County').mark_point(size=500).encode(
         x=alt.X('pop_density', scale=alt.Scale(type='log')),
-        y=alt.Y('totalcountconfirmed', scale=alt.Scale(type='log')),
-        color='county:N',
+        y=alt.Y('count_per_capita', scale=alt.Scale(type='log')),
+        color=alt.Color('county:N', legend=None),
         tooltip=['county:N', 'totalcountconfirmed:N']
     )
 
