@@ -27,3 +27,7 @@ With the daily updates we can also compare mortality rates amongst counties over
 The graph below displays the Top 10 counties in California normalized per capita.
 
 ![image](https://user-images.githubusercontent.com/49408616/93654514-bac2d300-f9d2-11ea-94f1-ec050bf04c9b.png)
+
+Users can also slide over to the "Visualize Map" page to see the confirmed cases and deaths plotted on a map.
+
+![image](https://user-images.githubusercontent.com/49408616/97115509-4c012580-16b4-11eb-9f1a-00fae6f14029.png)
