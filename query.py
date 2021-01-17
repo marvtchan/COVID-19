@@ -3,6 +3,7 @@
 # import pandas as pd 
 import requests
 import pandas as pd
+from psqlconnection import psqlconnector
 
 pd.set_option('display.max_rows', 3000)
 pd.set_option('display.max_columns', 300)
@@ -33,7 +34,7 @@ from sqlalchemy import create_engine, Table, Column, Integer, String, ForeignKey
 import pandas as pd
 
 
-engine = create_engine('postgresql://marvinchan:shadow8@localhost:5432/covid')
+engine = create_engine(psqlconnector)
 connection = engine.raw_connection()
 
 inspector = inspect(engine)
