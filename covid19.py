@@ -2,6 +2,7 @@
 # streamlit
 import streamlit as st
 from streamlit import caching
+from psqlconnection import DATABASE_URL
 
 #database
 
@@ -216,7 +217,7 @@ def main():
 # Load Data from database
 @st.cache(persist=True, allow_output_mutation=True)
 def load_data():
-    engine = create_engine('postgresql://marvinchan:shadow8@localhost:5432/covid', echo=False)
+    engine = create_engine(DATABASE_URL, echo=False)
     connection = engine.raw_connection()
     cursor = connection.cursor()
     data = pd.read_sql_query('SELECT * FROM county', connection)
