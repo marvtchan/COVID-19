@@ -2,11 +2,13 @@
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, ForeignKey, inspect
 import pandas as pd
+from psqlconnection import DATABASE_URL
 pd.set_option('display.max_columns', 300)
 pd.set_option('display.width', 1000)
 
 
-engine = create_engine('postgresql://marvinchan:shadow8@localhost:5432/covid')
+# engine = create_engine('postgresql://marvinchan:shadow8@localhost:5432/covid')
+engine = create_engine(DATABASE_URL)
 connection = engine.raw_connection()
 
 inspector = inspect(engine)
