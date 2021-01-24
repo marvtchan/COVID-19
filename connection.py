@@ -27,6 +27,6 @@ county = pd.read_sql_query('SELECT * FROM county', connection)
 
 # coords = pd.read_sql_query('SELECT * FROM coords_aggregated', connection)
 
-print(coords)
+# print(coords)
 
 connection.close()
