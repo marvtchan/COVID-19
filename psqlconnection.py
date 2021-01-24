@@ -1,5 +1,5 @@
 #psqlconnection.py
 
-DATABASE_URL = 'postgres://njsmkulnhxznkf:2d41d6cb20bfe2b080ce8981d0d02e94161e43d948a00ca3c503d7b252cd27a3@ec2-75-101-232-85.compute-1.amazonaws.com:5432/dc5qeacrsku4m1'
+DATABASE_URL = 'postgres://wbednsipiaqkbj:d5e3da30cfbde8bc3d815da1e55ff3151702373e3771043efd7d29377f2eb4d8@ec2-34-200-158-205.compute-1.amazonaws.com:5432/d4gb3iqvaak9j1'
 
 # postgresql://marvinchan:shadow8@localhost:5432/covid
