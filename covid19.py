@@ -28,7 +28,7 @@ rcParams.update({'figure.autolayout': True})
 import pydeck as pdk
 import altair as alt
 alt.data_transformers.disable_max_rows()
-from data_visualization import comparison_chart, mortality_chart, pop_density_chart, comparison_chart_all, density_relationship
+from data_visualization import comparison_chart, mortality_chart, pop_density_chart, comparison_chart_all, density_relationship, case_death_bar, mortality_bar_chart, map
 
 
 
@@ -66,10 +66,26 @@ def main():
         display_top = display_top.nlargest(20,'date').sort_values(by=['Type', 'Value'], ascending=False)
         display_top['Daily Value'] = display_top['Value']
 
-        display_top = display_top.pivot_table(index=['county', 'date'], columns='Type', values=['Daily Value', 'Running Totals'], aggfunc=np.sum)
-        display_top = display_top.sort_values(('Running Totals', 'newcountconfirmed'), ascending=False)
+        table_top = display_top.pivot_table(index=['county', 'date'], columns='Type', values=['Daily Value', 'Running Totals'], aggfunc=np.sum)
+        table_top = table_top.sort_values(('Running Totals', 'newcountconfirmed'), ascending=False)
 
-        st.table(display_top)
+        mortality_bar = display_top.reset_index()
+        mortality_bar = mortality_bar[['county', 'Type', 'Running Totals']]
+
+        mortality_bar = mortality_bar.pivot(index='county', columns='Type')['Running Totals'].reset_index()
+        mortality_bar['mortality_rate'] = mortality_bar['newcountdeaths'] / mortality_bar['newcountconfirmed']
+
+        st.table(mortality_bar)
+
+
+
+
+        st.table(table_top)
+
+        case_death_bar(top_data, 'county:N', 'Value:Q')
+
+        mortality_bar_chart(mortality_bar, 'county:N', 'mortality_rate:Q')
+
         if st.checkbox("Display total data", False):
             st.subheader("Raw Data")
             st.write(data)
@@ -103,7 +119,7 @@ def main():
         
         """)
 
-        data, pop_den, result, top_data, mortality_rate = load_data()
+        data, pop_den, result, top_data, mortality_rate, coords = load_data()
 
         start_date, end_date, today = get_dates()
 
@@ -158,17 +174,43 @@ def main():
 
         if st.checkbox("Display total data", False, key=data):
             st.subheader("Raw Data")
-            st.write(county)
+            st.write(data)
 
     elif page == "Visualize Map":
         df = load_data()
-        st.title("COVID-19 Cases & Deaths in Alameda County")
+        st.title("COVID-19 Cases & Deaths in California Counties")
         st.markdown(
         """
         We can visualize COVID-19 on a map here.
 
         """)
 
+        coords = load_data()[5].dropna()
+        coords = coords.nlargest(58,'date')
+        coords = coords[['county', 'date', 'totalcountconfirmed', 'totalcountdeaths', 'latitude', 'longitude']]
+
+        st.markdown(
+        """
+           1. The first map displays total confirmed cases amongst California Counties. The radius is determined by the size of each county's total cases. 
+
+        """)
+        map(coords, coords, "totalcountconfirmed", 0.8)
+
+        st.markdown(
+        """
+           2. The second map below represents total confirmed deaths amongst California Counties. The radius is determined by the size of each county's total deaths. 
+
+        """)
+        map(coords, coords, "totalcountdeaths", 10)
+
+        st.markdown(
+        """
+        The top and bottom maps are not relative to each other therefore the radius is independent of each other's but are instead relative within each other. 
+        """)
+
+        if st.checkbox("Display total data", False, key=coords):
+            st.subheader("Raw Data")
+            st.table(coords)
 
 
 # Load Data from database
@@ -183,8 +225,9 @@ def load_data():
     result = pd.read_sql_query('SELECT * FROM counties_aggregated', connection)
     top_data = pd.read_sql_query('SELECT * FROM top_counties_aggregated', connection)
     mortality_rate = pd.read_sql_query('SELECT * FROM mortality_rate_aggregated', connection)
+    coords = pd.read_sql_query('SELECT * FROM coords_aggregated', connection)
     connection.close()
-    return data, pop_den, result, top_data, mortality_rate
+    return data, pop_den, result, top_data, mortality_rate, coords
 
 
 #Function for dates

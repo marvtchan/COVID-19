@@ -13,7 +13,7 @@ pd.set_option('display.width', 1000)
 # filter parameters
 params = params={
     'resource_id': '926fd08f-cc91-4828-af38-bd45de97f8c3', 
-    'limit': 32000,
+    'limit': 50000,
     'include_total': True
 }
 

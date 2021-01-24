@@ -1,0 +1,66 @@
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    <title>pydeck</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" />
+    <script src='https://cdn.jsdelivr.net/npm/@deck.gl/jupyter-widget@~8.2.*/dist/index.js'></script>
+    <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    #deck-map-container {
+      width: 100%;
+      height: 100%;
+      background-color: black;
+    }
+
+    #map {
+      pointer-events: none;
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      z-index: 1;
+    }
+
+    #deckgl-overlay {
+      z-index: 2;
+      background: none;
+    }
+
+    #deck-map-wrapper {
+      width: 100%;
+      height: 100%;
+    }
+
+    #deck-container {
+      width: 100vw;
+      height: 100vh;
+    }
+    </style>
+  </head>
+  <body>
+    <div id="deck-container">
+    </div>
+  </body>
+  <script>
+    const jsonInput = {"initialViewState": {"latitude": 37.82806999219453, "longitude": -120.81308083799607, "zoom": 4}, "layers": [{"@@type": "ScatterplotLayer", "autoHighlight": true, "data": [{"county": "Santa Clara", "date": {}, "latitude": 37.30798165137615, "longitude": -121.91816513761465, "totalcountconfirmed": 20170.0, "totalcountdeaths": 296.0}, {"county": "San Mateo", "date": {}, "latitude": 37.51945945945946, "longitude": -122.3410810810811, "totalcountconfirmed": 9158.0, "totalcountdeaths": 143.0}, {"county": "Santa Barbara", "date": {}, "latitude": 34.561707317073164, "longitude": -119.97682926829273, "totalcountconfirmed": 8862.0, "totalcountdeaths": 110.0}, {"county": "Tuolumne", "date": {}, "latitude": 38.01625000000001, "longitude": -120.18, "totalcountconfirmed": 217.0, "totalcountdeaths": 4.0}, {"county": "Sierra", "date": {}, "latitude": 39.55375, "longitude": -120.66375, "totalcountconfirmed": 6.0, "totalcountdeaths": 0.0}, {"county": "Placer", "date": {}, "latitude": 39.019999999999996, "longitude": -120.84548387096773, "totalcountconfirmed": 3412.0, "totalcountdeaths": 41.0}, {"county": "San Luis Obispo", "date": {}, "latitude": 35.33942857142858, "longitude": -120.68142857142858, "totalcountconfirmed": 3369.0, "totalcountdeaths": 27.0}, {"county": "Solano", "date": {}, "latitude": 38.224374999999995, "longitude": -122.01312500000002, "totalcountconfirmed": 5998.0, "totalcountdeaths": 55.0}, {"county": "Monterey", "date": {}, "latitude": 36.49371428571428, "longitude": -121.5677142857143, "totalcountconfirmed": 9237.0, "totalcountdeaths": 67.0}, {"county": "Yuba", "date": {}, "latitude": 39.26727272727272, "longitude": -121.32727272727271, "totalcountconfirmed": 1023.0, "totalcountdeaths": 7.0}, {"county": "San Francisco", "date": {}, "latitude": 37.766666666666666, "longitude": -122.41681818181812, "totalcountconfirmed": 10741.0, "totalcountdeaths": 97.0}, {"county": "Orange", "date": {}, "latitude": 33.73241610738256, "longitude": -117.84932885906032, "totalcountconfirmed": 50999.0, "totalcountdeaths": 1127.0}, {"county": "Mono", "date": {}, "latitude": 38.089999999999996, "longitude": -119.07857142857144, "totalcountconfirmed": 147.0, "totalcountdeaths": 2.0}, {"county": "Calaveras", "date": {}, "latitude": 38.206190476190486, "longitude": -120.55333333333333, "totalcountconfirmed": 256.0, "totalcountdeaths": 14.0}, {"county": "Alpine", "date": {}, "latitude": 38.834999999999994, "longitude": -119.905, "totalcountconfirmed": 2.0, "totalcountdeaths": 0.0}, {"county": "Nevada", "date": {}, "latitude": 39.26461538461538, "longitude": -120.76307692307692, "totalcountconfirmed": 505.0, "totalcountdeaths": 6.0}, {"county": "Butte", "date": {}, "latitude": 39.6375, "longitude": -121.62125000000002, "totalcountconfirmed": 2748.0, "totalcountdeaths": 35.0}, {"county": "Santa Cruz", "date": {}, "latitude": 37.0152380952381, "longitude": -121.98857142857143, "totalcountconfirmed": 2198.0, "totalcountdeaths": 8.0}, {"county": "Mendocino", "date": {}, "latitude": 39.316296296296294, "longitude": -123.49148148148146, "totalcountconfirmed": 750.0, "totalcountdeaths": 18.0}, {"county": "Fresno", "date": {}, "latitude": 36.74009999999999, "longitude": -119.73630000000007, "totalcountconfirmed": 27668.0, "totalcountdeaths": 355.0}, {"county": "Inyo", "date": {}, "latitude": 36.480000000000004, "longitude": -117.60307692307694, "totalcountconfirmed": 177.0, "totalcountdeaths": 14.0}, {"county": "San Joaquin", "date": {}, "latitude": 37.960731707317066, "longitude": -121.29682926829271, "totalcountconfirmed": 19580.0, "totalcountdeaths": 414.0}, {"county": "Ventura", "date": {}, "latitude": 34.25787234042553, "longitude": -119.02446808510634, "totalcountconfirmed": 12328.0, "totalcountdeaths": 143.0}, {"county": "Trinity", "date": {}, "latitude": 40.67363636363637, "longitude": -123.14727272727272, "totalcountconfirmed": 15.0, "totalcountdeaths": 0.0}, {"county": "Mariposa", "date": {}, "latitude": 37.562222222222225, "longitude": -119.99444444444445, "totalcountconfirmed": 74.0, "totalcountdeaths": 2.0}, {"county": "El Dorado", "date": {}, "latitude": 38.78333333333334, "longitude": -120.53233333333333, "totalcountconfirmed": 1068.0, "totalcountdeaths": 4.0}, {"county": "Sonoma", "date": {}, "latitude": 38.42380000000002, "longitude": -122.8142, "totalcountconfirmed": 6905.0, "totalcountdeaths": 114.0}, {"county": "Shasta", "date": {}, "latitude": 40.70741935483872, "longitude": -122.16870967741936, "totalcountconfirmed": 687.0, "totalcountdeaths": 14.0}, {"county": "Lassen", "date": {}, "latitude": 40.592000000000006, "longitude": -120.598, "totalcountconfirmed": 731.0, "totalcountdeaths": 0.0}, {"county": "Colusa", "date": {}, "latitude": 39.17000000000001, "longitude": -122.14833333333333, "totalcountconfirmed": 507.0, "totalcountdeaths": 6.0}, {"county": "Lake", "date": {}, "latitude": 39.020625, "longitude": -122.75812499999999, "totalcountconfirmed": 465.0, "totalcountdeaths": 10.0}, {"county": "Modoc", "date": {}, "latitude": 41.473, "longitude": -120.48799999999999, "totalcountconfirmed": 22.0, "totalcountdeaths": 0.0}, {"county": "Tulare", "date": {}, "latitude": 36.23699999999999, "longitude": -119.13875, "totalcountconfirmed": 15485.0, "totalcountdeaths": 256.0}, {"county": "San Benito", "date": {}, "latitude": 36.772000000000006, "longitude": -121.27799999999999, "totalcountconfirmed": 1276.0, "totalcountdeaths": 11.0}, {"county": "Alameda", "date": {}, "latitude": 37.743857142857145, "longitude": -122.15457142857143, "totalcountconfirmed": 20349.0, "totalcountdeaths": 374.0}, {"county": "Marin", "date": {}, "latitude": 38.0, "longitude": -122.61073170731707, "totalcountconfirmed": 6513.0, "totalcountdeaths": 112.0}, {"county": "San Diego", "date": {}, "latitude": 32.86363157894737, "longitude": -117.0629473684211, "totalcountconfirmed": 44295.0, "totalcountdeaths": 760.0}, {"county": "Glenn", "date": {}, "latitude": 39.584999999999994, "longitude": -122.16999999999999, "totalcountconfirmed": 547.0, "totalcountdeaths": 3.0}, {"county": "Siskiyou", "date": {}, "latitude": 41.585454545454546, "longitude": -122.63181818181819, "totalcountconfirmed": 146.0, "totalcountdeaths": 0.0}, {"county": "Madera", "date": {}, "latitude": 37.152857142857144, "longitude": -119.79642857142858, "totalcountconfirmed": 4237.0, "totalcountdeaths": 58.0}, {"county": "Tehama", "date": {}, "latitude": 40.13, "longitude": -122.10785714285716, "totalcountconfirmed": 498.0, "totalcountdeaths": 4.0}, {"county": "Sutter", "date": {}, "latitude": 39.00363636363637, "longitude": -121.68090909090907, "totalcountconfirmed": 1602.0, "totalcountdeaths": 10.0}, {"county": "Napa", "date": {}, "latitude": 38.4575, "longitude": -122.37416666666665, "totalcountconfirmed": 1614.0, "totalcountdeaths": 13.0}, {"county": "Los Angeles", "date": {}, "latitude": 34.07284090909093, "longitude": -118.26248106060602, "totalcountconfirmed": 259801.0, "totalcountdeaths": 6330.0}, {"county": "Sacramento", "date": {}, "latitude": 38.55843283582089, "longitude": -121.43373134328354, "totalcountconfirmed": 21297.0, "totalcountdeaths": 375.0}, {"county": "Merced", "date": {}, "latitude": 37.278181818181814, "longitude": -120.62272727272729, "totalcountconfirmed": 8717.0, "totalcountdeaths": 134.0}, {"county": "Kings", "date": {}, "latitude": 36.17, "longitude": -119.79222222222224, "totalcountconfirmed": 7130.0, "totalcountdeaths": 77.0}, {"county": "Kern", "date": {}, "latitude": 35.34764705882353, "longitude": -118.74367647058824, "totalcountconfirmed": 30886.0, "totalcountdeaths": 354.0}, {"county": "Riverside", "date": {}, "latitude": 33.787300000000016, "longitude": -116.94180000000004, "totalcountconfirmed": 56562.0, "totalcountdeaths": 1153.0}, {"county": "Contra Costa", "date": {}, "latitude": 37.929038461538475, "longitude": -122.05769230769232, "totalcountconfirmed": 15783.0, "totalcountdeaths": 199.0}, {"county": "Del Norte", "date": {}, "latitude": 41.78666666666667, "longitude": -124.08500000000002, "totalcountconfirmed": 132.0, "totalcountdeaths": 1.0}, {"county": "San Bernardino", "date": {}, "latitude": 34.31603305785122, "longitude": -117.0476859504133, "totalcountconfirmed": 51353.0, "totalcountdeaths": 908.0}, {"county": "Stanislaus", "date": {}, "latitude": 37.61241379310345, "longitude": -120.95724137931032, "totalcountconfirmed": 16109.0, "totalcountdeaths": 332.0}, {"county": "Humboldt", "date": {}, "latitude": 40.614615384615384, "longitude": -123.94897435897438, "totalcountconfirmed": 471.0, "totalcountdeaths": 6.0}, {"county": "Plumas", "date": {}, "latitude": 39.94055555555556, "longitude": -120.80499999999999, "totalcountconfirmed": 47.0, "totalcountdeaths": 0.0}, {"county": "Amador", "date": {}, "latitude": 38.45846153846154, "longitude": -120.66384615384612, "totalcountconfirmed": 285.0, "totalcountdeaths": 16.0}, {"county": "Imperial", "date": {}, "latitude": 32.94833333333334, "longitude": -115.45055555555557, "totalcountconfirmed": 10496.0, "totalcountdeaths": 314.0}, {"county": "Yolo", "date": {}, "latitude": 38.664, "longitude": -121.84750000000001, "totalcountconfirmed": 2739.0, "totalcountdeaths": 54.0}], "filled": true, "getFillColor": [252, 136, 3], "getPosition": "@@=[longitude, latitude]", "getRadius": "@@=[totalcountconfirmed]", "getlinecolor": [255, 0, 0], "id": "027d1778-4c8b-4637-b91a-ee29e39443e1", "opacity": 0.3, "pickable": true, "radiusMinPixels": 1, "radiusScale": 0.09, "radiusmaxpixels": 1, "stroked": true}], "mapProvider": "mapbox", "mapStyle": "mapbox://styles/mapbox/light-v10", "views": [{"@@type": "MapView", "controller": true}]};
+    const MAPBOX_API_KEY = 'None';
+    const GOOGLE_MAPS_API_KEY = 'None';
+    const tooltip = {'html': '<b>county:</b> {county} <br><b>totalcountconfirmed:</b> {totalcountconfirmed} <br><b>totalcountdeaths:</b> {totalcountdeaths}', 'style': {'color': 'white'}};
+    const customLibraries = null;
+
+    const deck = createDeck({
+      mapboxApiKey: MAPBOX_API_KEY,
+      googleMapsKey: GOOGLE_MAPS_API_KEY,
+      container: document.getElementById('deck-container'),
+      jsonInput,
+      tooltip,
+      customLibraries
+    });
+
+  </script>
+</html>

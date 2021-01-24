@@ -14,12 +14,15 @@ from connection import county
 
 # This class provides functions that can be used to clean, organize, and prepare COVID data for analysis
 # Data is pulled with API from government websites
-# The databframes created are then loaded into PSQL database. 
+# The dataframes created are then loaded into PSQL database. 
 class COVID:
 	def __init__(self, df):
 		self.df = df
 		self.pop = pd.read_csv('county_pop.csv')
 		self.pop = self.pop.rename(columns={'County': 'county', "Population": "population"})
+		self.coords = pd.read_csv('county_coords.csv')
+
+
 
 	def top_10(self):
 		# This function groups California counties by county and sorta by counts confirmed for a top 10 list.
@@ -85,6 +88,18 @@ class COVID:
 		result['per_density'] = (result['SMA_7'] * result['pop_density'])
 		return result
 
+	def coordinates(self):
+		# Get coordinates for every California County
+		coords = self.coords[self.coords['state'].str.contains('CA')]
+		coords = coords[['county', 'latitude', 'longitude']]
+		coords = coords.groupby(by=['county']).mean().reset_index()
+		coords_df = self.df.merge(coords, how='left', on=['county'])
+		coords_df['date'] = pd.to_datetime(coords_df['date'])
+		coords_df['totalcountconfirmed'] = coords_df['totalcountconfirmed'].astype(float)
+		print(coords_df)
+		coords_df['totalcountdeaths'] = coords_df['totalcountdeaths'].astype(float)
+		return coords_df
+
 	def cleaned(self):
 		# Create tables for cleaned data
 		result = []
@@ -116,15 +131,15 @@ class COVID:
 		counties_case = pd.concat(counties_case)
 		counties_death = pd.concat(counties_death)
 		mortality_rate = COVID(self.df).mortality_rate(counties_case, counties_death)
-
+		coords = COVID(self.df).coordinates()
 		pop_density = COVID(self.df).population_density(result)
 
 
-		return result, top_data, mortality_rate, pop_density
+		return result, top_data, mortality_rate, pop_density, coords
 
 
 
 
 
-result, top_data, mortality_rate, pop_den = COVID(county).cleaned()
+result, top_data, mortality_rate, pop_den, coords = COVID(county).cleaned()
 
