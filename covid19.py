@@ -237,7 +237,7 @@ def get_dates():
     first = today.replace(day=1)
     start = first
     end = first + relativedelta(day=31)
-    start_date = st.sidebar.date_input('Start Date', dt.date(2020,3,18))
+    start_date = st.sidebar.date_input('Start Date', dt.date(2020,6,30))
     end_date = st.sidebar.date_input('End Date', today)
     if start_date < end_date:
         st.success('Start date: `%s`\n\nEnd date:`%s`' % (start_date, end_date))
