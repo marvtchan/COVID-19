@@ -17,15 +17,15 @@ print(inspector.get_table_names())
 
 county = pd.read_sql_query('SELECT * FROM county', connection)
 
-pop_den = pd.read_sql_query('SELECT * FROM population_density_aggregated', connection)
+# pop_den = pd.read_sql_query('SELECT * FROM population_density_aggregated', connection)
 
-result = pd.read_sql_query('SELECT * FROM counties_aggregated', connection)
+# result = pd.read_sql_query('SELECT * FROM counties_aggregated', connection)
 
-top_data = pd.read_sql_query('SELECT * FROM top_counties_aggregated', connection)
+# top_data = pd.read_sql_query('SELECT * FROM top_counties_aggregated', connection)
 
-mortality_rate = pd.read_sql_query('SELECT * FROM mortality_rate_aggregated', connection)
+# mortality_rate = pd.read_sql_query('SELECT * FROM mortality_rate_aggregated', connection)
 
-coords = pd.read_sql_query('SELECT * FROM coords_aggregated', connection)
+# coords = pd.read_sql_query('SELECT * FROM coords_aggregated', connection)
 
 print(coords)
 
