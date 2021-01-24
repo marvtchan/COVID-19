@@ -256,7 +256,8 @@ def filter_data(data, start_date, end_date):
     return filtered
   
 def relationships(data, pop_den):
-    density = data
+    density = data[data['date'] == data['date'].max()]
+    pop_den = pop_den[pop_den['date'] == pop_den['date'].max()]
     density = pd.merge(density, pop_den[['county', 'pop_density']], on='county', how='left').drop_duplicates('_id').reset_index()
     density = pd.merge(density, pop_den[['county', 'population']], on='county', how='left').drop_duplicates('_id').reset_index()
     density['count_per_capita'] = density['totalcountconfirmed']/density['population'] * 100000
