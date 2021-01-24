@@ -3,7 +3,7 @@
 # import pandas as pd 
 import requests
 import pandas as pd
-from psqlconnection import psqlconnector
+from psqlconnection import DATABASE_URL
 
 pd.set_option('display.max_rows', 3000)
 pd.set_option('display.max_columns', 300)
@@ -32,18 +32,19 @@ print(county)
 import sqlalchemy
 from sqlalchemy import create_engine, Table, Column, Integer, String, ForeignKey, inspect
 import pandas as pd
+import psycopg2
 
-
-engine = create_engine(psqlconnector)
+engine = create_engine(DATABASE_URL)
+# con = psycopg2.connect(DATABASE_URL)
 connection = engine.raw_connection()
 
-inspector = inspect(engine)
+# inspector = inspect(engine)
 
-print(inspector.get_table_names())
+# print(inspector.get_table_names())
 
 
 def update_table(df,table_name):
-	df.to_sql(table_name, engine, if_exists='replace')
+	df.to_sql(table_name, con=engine, if_exists='replace')
 
 
 
