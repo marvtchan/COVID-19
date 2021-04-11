@@ -97,7 +97,7 @@ def main():
         """)
         st.markdown(
         """
-        Below is a map of all confirmed cases in Alameda County:
+        
         """)
         # df = load_data()
 
