@@ -1,5 +1,7 @@
 # COVID-19 Analysis
 
+Take a look at my California COVID-19 project here: https://california-covid19.herokuapp.com/
+
 This project is made for analyzing California Counties COVID-19 data.
 
 ![image](https://user-images.githubusercontent.com/49408616/93654426-35d7b980-f9d2-11ea-9ce9-7f41a6fbf9a5.png)
